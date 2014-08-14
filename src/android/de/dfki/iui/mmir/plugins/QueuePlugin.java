@@ -1,4 +1,4 @@
-package de.dfki.iui.mmig.plugins;
+package de.dfki.iui.mmir.plugins;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;

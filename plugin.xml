@@ -2,7 +2,7 @@
 
 <plugin 
     xmlns="http://cordova.apache.org/ns/plugins/1.0"
-    id="de.dfki.iui.mmig.QueuePlugin"
+    id="de.dfki.iui.mmir.QueuePlugin"
     version="0.1.0">
 
     <name>QueuePlugin</name>
@@ -29,13 +29,13 @@
 
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="QueuePlugin">
-                <param name="android-package" value="de.dfki.iui.mmig.plugins.QueuePlugin" />
+                <param name="android-package" value="de.dfki.iui.mmir.plugins.QueuePlugin" />
             </feature>
         </config-file>
         
         <source-file
-            src="src/android/de/dfki/iui/mmig/plugins/QueuePlugin.java"
-            target-dir="src/de/dfki/iui/mmig/plugins" />
+            src="src/android/de/dfki/iui/mmir/plugins/QueuePlugin.java"
+            target-dir="src/de/dfki/iui/mmir/plugins" />
         
     </platform>
 </plugin>
