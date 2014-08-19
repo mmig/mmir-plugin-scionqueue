@@ -1,20 +1,26 @@
 package de.dfki.iui.mmir.plugins;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.LOG;
 import org.apache.cordova.PluginResult;
 import org.apache.cordova.PluginResult.Status;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 
 
 public class QueuePlugin extends CordovaPlugin{
-	ArrayList<LinkedList<Object>> queueList = new ArrayList<LinkedList<Object>>(2);
-	ArrayList<Boolean> isReady = new ArrayList<Boolean>(2);
+
+	private static final String NAME = "QueuePlugin";
+	
+	public static final String CMD_NEW_JOB = "newJob";
+	public static final String CMD_NEW_QUEUE = "newQueue";
+	public static final String CMD_READY_FOR_JOB = "readyForJob";
+	
+	private ArrayList<LinkedList<Object>> queueList = new ArrayList<LinkedList<Object>>(2);
+	private ArrayList<Boolean> isReady = new ArrayList<Boolean>(2);
 	
 	public QueuePlugin(){
 		
@@ -25,19 +31,21 @@ public class QueuePlugin extends CordovaPlugin{
 		try {
 			PluginResult result = null;
 			
-			if(action.equals("newQueue") && args.length()>=1)
+			if(action.equals(CMD_NEW_QUEUE) && args.length()>=1)
 			{
 					result = newQueue(args.getInt(0));
 			}
-			else if(action.equals("newJob") && args.length()>= 2){
+			else if(action.equals(CMD_NEW_JOB) && args.length()>= 2){
 					
 					result = newJob(args.getInt(0), args.getJSONObject(1));
 			}
-			else if(action.equals("readyForJob") && args.length()>=1){
+			else if(action.equals(CMD_READY_FOR_JOB) && args.length()>=1){
 					result = readyForJob(args.getInt(0));
 			}
 			else {
 				result = new PluginResult(Status.ERROR, "Unknown action: \""+action+"\"");
+				
+				return false; ///////////////// EARLY EXIT /////////////////////////////
 			}
 			
 			if (result!=null){
@@ -45,8 +53,9 @@ public class QueuePlugin extends CordovaPlugin{
 			}
 			
 		} catch (JSONException e) {
-			e.printStackTrace();
-			callbackContext.sendPluginResult(new PluginResult(Status.JSON_EXCEPTION,"Wrong arguments: "+ e));
+			String msg = String.format("Wrong arguments for action '%s'.", action);
+			LOG.e(NAME, msg, e);
+			callbackContext.sendPluginResult(new PluginResult(Status.JSON_EXCEPTION, msg+" "+ e));
 		}
 				
 		return true;
@@ -74,8 +83,10 @@ public class QueuePlugin extends CordovaPlugin{
 	}
 
 	private synchronized PluginResult newQueue(int id) {
+		
 		if (queueList.size()!= id)
-			System.out.println("Warning: Queue-Indices out of Sync!");
+			LOG.w(NAME, "Warning: Queue indices out of sync!");
+		
 		queueList.add(new LinkedList<Object>());
 		isReady.add(true);
 		return null;
