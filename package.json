@@ -1,0 +1,34 @@
+{
+  "name": "dfki-mmir-plugin-queue",
+  "version": "0.1.1",
+  "description": "Cordova plugin that enables event queueing for SCION (SCXML interpreter) in Android.",
+  "cordova": {
+    "id": "dfki-mmir-plugin-queue",
+    "platforms": [
+      "android"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mmig/mmir-plugin-scionqueue.git"
+  },
+  "keywords": [
+    "cordova",
+    "scion",
+    "android",
+    "ecosystem:cordova",
+    "cordova-android"
+  ],
+  "engines": [
+    {
+      "name": "cordova",
+      "version": ">=3.0"
+    }
+  ],
+  "author": "russa",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mmig/mmir-plugin-scionqueue/issues"
+  },
+  "homepage": "https://github.com/mmig/mmir-plugin-scionqueue#readme"
+}

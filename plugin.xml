@@ -2,8 +2,8 @@
 
 <plugin 
     xmlns="http://cordova.apache.org/ns/plugins/1.0"
-    id="de.dfki.iui.mmir.QueuePlugin"
-    version="0.1.0">
+    id="dfki-mmir-plugin-queue"
+    version="0.1.1">
 
     <name>QueuePlugin</name>
     
@@ -24,7 +24,7 @@
     <!-- android -->
     <platform name="android">
        <js-module src="www/queuePlugin.js" name="queuePlugin">
-          <clobbers target="window.plugins.queuePlugin" />
+          <clobbers target="window.cordova.plugins.queuePlugin" />
        </js-module>
 
         <config-file target="res/xml/config.xml" parent="/*">
