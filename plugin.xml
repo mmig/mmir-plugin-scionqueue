@@ -18,7 +18,7 @@
     <author>DFKI</author>
 
     <engines>
-        <engine name="cordova" version=">=3.0" />
+        <engine name="cordova" version=">=5.0" />
     </engines>
 
     <!-- android -->
