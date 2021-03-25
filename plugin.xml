@@ -3,7 +3,7 @@
 <plugin 
     xmlns="http://cordova.apache.org/ns/plugins/1.0"
     id="dfki-mmir-plugin-queue"
-    version="0.1.1">
+    version="0.2.0">
 
     <name>QueuePlugin</name>
     
