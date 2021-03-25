@@ -1,42 +1,12 @@
-/*
- * 	Copyright (C) 2012-2013 DFKI GmbH
- * 	Deutsches Forschungszentrum fuer Kuenstliche Intelligenz
- * 	German Research Center for Artificial Intelligence
- * 	http://www.dfki.de
- * 
- * 	Permission is hereby granted, free of charge, to any person obtaining a 
- * 	copy of this software and associated documentation files (the 
- * 	"Software"), to deal in the Software without restriction, including 
- * 	without limitation the rights to use, copy, modify, merge, publish, 
- * 	distribute, sublicense, and/or sell copies of the Software, and to 
- * 	permit persons to whom the Software is furnished to do so, subject to 
- * 	the following conditions:
- * 
- * 	The above copyright notice and this permission notice shall be included 
- * 	in all copies or substantial portions of the Software.
- * 
- * 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
- * 	OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
- * 	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
- * 	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
- * 	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
- * 	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
- * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-
 
 /**
  * Cordova plugin that exposes the WebKit's native queue handling interface
  * (see android.webkit.queueManager).
  */
 
-(function(){
-	
-
 var exec = require('cordova/exec');
 
-var QueuePlugin = function(){
-};
+var QueuePlugin = function(){};
 
 // creates a new Queue
 QueuePlugin.prototype.newQueue = function(id, successCallback, failureCallback){
@@ -78,7 +48,90 @@ QueuePlugin.prototype.newJob = function(id, job, successCallback, failureCallbac
 	}, "QueuePlugin", "newJob", [id,job]);
 };
 
+/**
+ * Factory for CordovaPlugin-based implementation of raise function.
+ *
+ * Provide creator-functions:
+ * <code>createWorker(_engineInstance, genFunc) : WebWorker</code>
+ * <code>createRaise(_engineInstance) : Function</code>
+ *
+ * @see mmir.state.StateEngineFactory
+ */
+QueuePlugin.prototype.queueFactory = /** @lends  mmir.state.StateEngineFactory.StateEngineQueuePluginImpl# */ {
+
+	/** @memberOf  mmir.state.StateEngineFactory.StateEngineQueuePluginImpl# */
+	name: 'queuepluginGen',
+	/** @function */
+	createWorker: (function initWorkerFactory() {
+
+		//"global" ID-list for all queues (i.e. ID-list for all engines)
+		var callBackList = [];
+
+		return function workerFactory(_instance, gen){
+
+			var id = callBackList.length;
+			var execQueue = window.cordova.plugins.queuePlugin;
+
+			function successCallBackHandler(args){
+				if (args.length===2){
+//  					console.debug('QueuePlugin: success '+ JSON.stringify(args[0]) + ', '+JSON.stringify(args[1]));//DEBUG
+					callBackList[args[0]](args[1]);
+				}
+			}
+
+			function failureFallbackHandler(_err){
+
+				_instance._logger.error('failed to initialize SCION extension for ANDROID env');
+				_instance.worker = (function(gen){
+					return {
+						raiseCordova: function fallback(event, eventData){
+							setTimeout(function(){
+								gen.call(_instance, event, eventData);
+							}, 10);
+						}
+					};
+				})();//END: fallback
+			}
+
+			callBackList.push(function(data){
+				var inst = _instance;
+				if(inst._logger.isv()) inst._logger.debug('raising:'+ data.event);
+				var generatedState = gen.call(inst, data.event, data.eventData);
+				if(inst._logger.isv()) inst._logger.debug('QueuePlugin: processed event '+id+' for '+ data.event+' -> new state: '+JSON.stringify(generatedState)+ ' at ' + inst.url);
+				execQueue.readyForJob(id, successCallBackHandler, failureFallbackHandler);
+
+				inst.onraise();
+			});
+
+			execQueue.newQueue(id, function(_args){
+					if(_instance._logger.isv()) _instance._logger.debug('QueuePlugin: entry '+id+' created.' + ' at ' + _instance.url);
+				}, failureFallbackHandler
+			);
+
+			return {
+				_engineInstance: _instance,
+				raiseCordova: function (event, eventData){
+					if(this._engineInstance._logger.isv()) this._engineInstance._logger.debug('QueuePlugin: new Job: '+ id + ' at ' + this._engineInstance.url);
+					execQueue.newJob(id, {event: event, eventData: eventData}, successCallBackHandler,failureFallbackHandler);
+				}
+			};
+
+		};//END: workerFactory(_instance, gen)
+
+	})(),//END: initWorkerFactory()
+
+	/** @function */
+	createRaise: function(_instance){
+		return function(event, eventData) {
+
+			if (eventData) _instance._logger.log('new Job:' + event);
+
+			_instance.worker.raiseCordova(event, eventData);
+		};
+	}
+
+};
+
+
 //NOTE this is a singleton (stateless) plugin
 module.exports = new QueuePlugin();
-
-})();
